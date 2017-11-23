@@ -1,0 +1,35 @@
+---
+- name: Check postfix_type var...
+  fail:
+    msg: 'bad value for ansible_role_postfix_type'
+  when: ansible_role_postfix_type not in ['Local only', 'Satellite system']
+
+- name: Check relayhost, if needed
+  fail:
+    msg: 'you must specify ansible_role_postfix_relayhost if you are using the Satellite system type'
+  when: (ansible_role_postfix_type == 'Satellite system') and (ansible_role_postfix_relayhost is undefined)
+
+- name: Create tmpfile to pipe into debconf
+  template:
+    src: 'postfix-debconf-info.j2'
+    dest: '/tmp/postfix-debconf-info'
+    mode: 0644
+
+- name: Pre-set debconf selections
+  shell: cat /tmp/postfix-debconf-info | debconf-set-selections
+
+- name: Install postfix
+  apt:
+    name: postfix
+    state: 'present'
+
+- name: Start and enable on boot
+  service:
+    name: 'postfix'
+    state: 'restarted'
+    enabled: 'yes'
+
+- name: Clean up tmpfile
+  file:
+    path: /tmp/postfix-debconf-info
+    state: 'absent'

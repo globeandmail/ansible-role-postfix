@@ -1,0 +1,5 @@
+postfix postfix/mailname string {{ ansible_role_postfix_mailname }}
+postfix postfix/main_mailer_type string {{ ansible_role_postfix_type }}
+{% if (ansible_role_postfix_type == "Satellite system") and ansible_role_postfix_relayhost %}
+postfix postfix/relayhost string {{ ansible_role_postfix_relayhost }}
+{% endif %}
